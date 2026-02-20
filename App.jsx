@@ -1,50 +1,32 @@
-import React, { useState } from 'react';
-import {
-    ChevronDown, ChevronUp, Database, FileCode,
-    Copy, Settings, CheckCircle2, XCircle, Globe, ArrowRightLeft
-} from 'lucide-react';
+import React from 'react';
 
-const App = () => {
-    const [data] = useState([
-        {
-            id: 1,
-            feed: "PROD_USER_ACTIVITY_LOGS_STREAM_GLOBAL_V2_FINAL",
-            slice: "regional/north_america/compliance/audit_logs",
-            cobDate: "2024-10-24",
-            batchId: "BID-99283-XQA",
-            currentEnv: "PROD",
-            exists: true,
-            path: "s3://prod-data-bucket/feeds/user-logs/v2/2024/10/24/",
-            payload: { event: "LOGIN", status: "SUCCESS", ip: "192.168.1.1" }
-        },
-        {
-            id: 2,
-            feed: "MARKETING_CAMPAIGN_METRICS_AGGREGATED",
-            slice: "partner_data/sharepoint/exports/daily_summary",
-            cobDate: "2024-10-23",
-            batchId: "BID-11204-LMN",
-            currentEnv: "PROD",
-            exists: false,
-            path: "s3://prod-data-bucket/feeds/marketing/2024/10/23/",
-            foundInEnv: "UAT", // Logic: Backend found it elsewhere
-            alternativePath: "s3://uat-data-bucket/feeds/marketing/2024/10/23/"
-        }
-    ]);
-
+// --- Reusable Dropdown Component ---
+const NavItem = ({ title, items }) => {
     return (
-        <div className="min-h-screen bg-[#f8fafc] p-8 font-sans text-slate-900">
-            <div className="max-w-6xl mx-auto">
-                <header className="mb-8 flex justify-between items-end">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800">Data Event Manager</h1>
-                        <p className="text-slate-500 text-sm">Monitor batch availability across environments</p>
-                    </div>
-                    <div className="text-xs font-medium text-slate-400">Current Env: <span className="text-blue-600 font-bold px-2 py-1 bg-blue-50 rounded">PRODUCTION</span></div>
-                </header>
+        <div className="relative group px-3 py-2">
+            <button className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">
+                {title}
+                <svg
+                    className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
 
-                <div className="space-y-3">
-                    {data.map((item) => (
-                        <DataRow key={item.id} item={item} />
+            {/* Dropdown Menu - Aligned to the right so it doesn't overflow the screen */}
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform origin-top-right group-hover:translate-y-0 translate-y-2">
+                <div className="p-2">
+                    {items.map((item, index) => (
+                        <a
+                            key={index}
+                            href="#"
+                            className="block px-4 py-2.5 text-sm text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-colors"
+                        >
+                            {item}
+                        </a>
                     ))}
                 </div>
             </div>
@@ -52,124 +34,56 @@ const App = () => {
     );
 };
 
-const DataRow = ({ item }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
+const App = () => {
     return (
-        <div className={`group bg-white rounded-xl border transition-all duration-200 ${isOpen ? 'ring-2 ring-blue-500 shadow-xl' : 'hover:border-slate-300 shadow-sm'}`}>
-            {/* TILE VIEW (Main Row) */}
-            <div
-                className="flex items-center p-5 cursor-pointer"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                {/* Feed & Slice */}
-                <div className="flex-1 min-w-0 pr-8">
-                    <div className="flex items-center gap-2">
-                        <Database size={18} className={`${item.exists ? 'text-blue-500' : 'text-slate-400'}`} />
-                        <span className="font-bold text-slate-700 truncate text-lg tracking-tight" title={item.feed}>
-              {item.feed}
+        <div className="min-h-screen bg-white font-sans text-gray-900">
+
+            {/* --- Navbar --- */}
+            <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-50 z-50">
+                <div className="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
+
+                    {/* Logo Name (Left Side) */}
+                    <div className="flex items-center group cursor-pointer">
+            <span className="text-2xl font-black tracking-tighter text-indigo-600">
+              vixion<span className="text-indigo-300">.</span>
             </span>
                     </div>
-                    <span className="text-xs text-slate-400 font-medium truncate block mt-1 ml-6 uppercase tracking-wider">
-            {item.slice}
-          </span>
-                </div>
 
-                {/* Batch ID & COB Date */}
-                <div className="w-56 px-6 border-l border-slate-100">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Batch Context</div>
-                    <div className="flex flex-col">
-                        <span className="text-sm font-mono font-bold text-slate-600">{item.batchId}</span>
-                        <span className="text-xs text-blue-500 font-semibold">{item.cobDate}</span>
+                    {/* Navigation Items (Right Side) */}
+                    <div className="flex items-center gap-6">
+                        <NavItem
+                            title="Services"
+                            items={["Custom Design", "App Development", "Cloud Solutions"]}
+                        />
+                        <NavItem
+                            title="Settings"
+                            items={["Account", "Privacy", "System Prefs"]}
+                        />
+                        <NavItem
+                            title="Docs"
+                            items={["Introduction", "API Guide", "Community"]}
+                        />
                     </div>
                 </div>
+            </nav>
 
-                {/* Status Indicator */}
-                <div className="w-40 px-4">
-                    {item.exists ? (
-                        <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg w-fit">
-                            <CheckCircle2 size={16} />
-                            <span className="text-xs font-bold uppercase italic">Available</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg w-fit">
-                            <XCircle size={16} />
-                            <span className="text-xs font-bold uppercase italic">Missing</span>
-                        </div>
-                    )}
-                </div>
+            {/* --- Homepage Content --- */}
+            <main className="flex items-center justify-center min-h-screen px-6">
+                <div className="max-w-3xl text-center space-y-6">
+                    <h1 className="text-5xl md:text-7xl font-black tracking-tight text-gray-900 leading-[1.1]">
+                        Welcome to <span className="text-indigo-600">vixion</span>
+                    </h1>
+                    <p className="text-xl md:text-2xl text-gray-400 font-medium tracking-wide">
+                        one platform and endless possibilities.
+                    </p>
 
-                {/* Dropdown Toggle */}
-                <div className="ml-4 p-2 rounded-full group-hover:bg-slate-50 transition-colors">
-                    {isOpen ? <ChevronUp className="text-slate-400" /> : <ChevronDown className="text-slate-400" />}
-                </div>
-            </div>
-
-            {/* DETAILED VIEW (Expanded) */}
-            {isOpen && (
-                <div className="border-t bg-slate-50/50 rounded-b-xl p-8 animate-in fade-in slide-in-from-top-1 duration-300">
-                    <div className="grid grid-cols-12 gap-8">
-
-                        {/* Left: Path Info */}
-                        <div className="col-span-7">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Globe size={14} className="text-slate-400" />
-                                <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Environment Configuration</h4>
-                            </div>
-
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-inner">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{item.currentEnv}</span>
-                                    <button className="text-slate-400 hover:text-blue-500 transition-colors"><Copy size={14}/></button>
-                                </div>
-                                <p className="text-xs font-mono text-slate-500 break-all leading-relaxed">
-                                    {item.path}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Right: Actions (Conditional) */}
-                        <div className="col-span-5 flex flex-col justify-center border-l border-slate-200 pl-8">
-                            <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-center">Intelligent Actions</h4>
-
-                            {item.exists ? (
-                                /* Scenario A: Data Exists */
-                                <div className="space-y-3">
-                                    <button className="w-full flex items-center justify-center gap-2 bg-slate-800 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-900 transition-transform active:scale-95 shadow-lg shadow-slate-200">
-                                        <FileCode size={18} /> View JSON Payload
-                                    </button>
-                                    <p className="text-[10px] text-center text-slate-400 italic">Inspect data event contents from AWS S3</p>
-                                </div>
-                            ) : (
-                                /* Scenario B: Data Missing - Cross-Env Intelligence */
-                                <div className="space-y-3">
-                                    <div className="mb-4 p-3 bg-amber-100/50 border border-amber-200 rounded-lg">
-                                        <p className="text-[11px] text-amber-800 leading-tight">
-                                            <strong>Note:</strong> Batch found in <strong>{item.foundInEnv}</strong> environment. Select recovery action below:
-                                        </p>
-                                    </div>
-
-                                    <button className="w-full flex items-center gap-3 bg-white border-2 border-blue-100 text-blue-600 px-4 py-3 rounded-xl font-bold text-sm hover:border-blue-500 hover:bg-blue-50 transition-all">
-                                        <ArrowRightLeft size={18} />
-                                        <div className="text-left">
-                                            <div>Copy from {item.foundInEnv}</div>
-                                            <div className="text-[10px] font-normal opacity-70">Duplicate event to current env</div>
-                                        </div>
-                                    </button>
-
-                                    <button className="w-full flex items-center gap-3 bg-white border-2 border-slate-100 text-slate-600 px-4 py-3 rounded-xl font-bold text-sm hover:border-slate-400 hover:bg-slate-50 transition-all">
-                                        <Settings size={18} />
-                                        <div className="text-left">
-                                            <div>Update Config Path</div>
-                                            <div className="text-[10px] font-normal opacity-70">Point to {item.foundInEnv} S3 path</div>
-                                        </div>
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                    {/* Subtle Accent Line */}
+                    <div className="flex justify-center pt-8">
+                        <div className="h-1 w-12 bg-indigo-600 rounded-full"></div>
                     </div>
                 </div>
-            )}
+            </main>
+
         </div>
     );
 };
