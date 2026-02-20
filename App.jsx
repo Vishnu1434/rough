@@ -4,7 +4,7 @@ import React from 'react';
 const NavItem = ({ title, items }) => {
     return (
         <div className="relative group px-3 py-2">
-            <button className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">
+            <button className="flex items-center gap-1.5 text-base font-semibold text-gray-600 hover:text-indigo-600 transition-colors">
                 {title}
                 <svg
                     className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180"
@@ -44,9 +44,9 @@ const App = () => {
 
                     {/* Logo Name (Left Side) */}
                     <div className="flex items-center group cursor-pointer">
-            <span className="text-2xl font-black tracking-tighter text-indigo-600">
-              vixion<span className="text-indigo-300">.</span>
-            </span>
+                        <span className="text-3xl font-black tracking-tighter text-indigo-600">
+                          vixion<span className="text-indigo-300">.</span>
+                        </span>
                     </div>
 
                     {/* Navigation Items (Right Side) */}
