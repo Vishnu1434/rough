@@ -2,107 +2,126 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jira Metrics Dashboard</title>
+    <title>Jira Enterprise Analytics Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; margin: 20px; }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .full-width { grid-column: span 3; }
-        .half-width { grid-column: span 2; }
-        .stat-box { text-align: center; }
-        .stat-value { font-size: 2.5rem; font-weight: bold; color: #2c3e50; }
-        .stat-label { color: #7f8c8d; font-size: 0.9rem; text-transform: uppercase; }
-        .chart-container { width: 100%; height: 350px; }
-        h2 { margin-top: 0; font-size: 1.1rem; color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .container { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; max-width: 1600px; margin: auto; }
+        .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); grid-column: span 4; }
+        .large-card { grid-column: span 8; }
+        .full-card { grid-column: span 12; }
+        h3 { margin-top: 0; font-size: 1rem; color: #444; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .chart { height: 350px; width: 100%; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .mini-stat { background: #eef2f7; padding: 15px; border-radius: 8px; text-align: center; }
+        .mini-stat span { display: block; font-size: 1.5rem; font-weight: bold; color: #0052cc; }
+        .mini-stat label { font-size: 0.75rem; color: #666; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-<div class="dashboard-grid">
-    <div class="card stat-box">
-        <div class="stat-label">Total Low Level Issues</div>
-        <div class="stat-value">1,400,000</div>
-    </div>
-    <div class="card stat-box">
-        <div class="stat-label">Included in Avg Calculation</div>
-        <div class="stat-value">1,245,000</div>
-    </div>
-    <div class="card stat-box">
-        <div class="stat-label">Avg Cycle Time (Total)</div>
-        <div class="stat-value">18.4 Days</div>
-    </div>
-
-    <div class="card half-width">
-        <h2>Average Duration by Status (Days)</h2>
-        <div id="durationChart" class="chart-container"></div>
-    </div>
+<div class="container">
     <div class="card">
-        <h2>Hierarchy Breakdown</h2>
-        <div id="hierarchyChart" class="chart-container"></div>
+        <h3>Volume Summary</h3>
+        <div class="stats-grid">
+            <div class="mini-stat"><label>Total Issues</label><span>1.4M</span></div>
+            <div class="mini-stat"><label>In Calculation</label><span>1.2M</span></div>
+            <div class="mini-stat"><label>Avg Cycle</label><span>14d</span></div>
+            <div class="mini-stat"><label>Active Epics</label><span>8.5k</span></div>
+        </div>
     </div>
 
-    <div class="card full-width">
-        <h2>Status Distribution: Hierarchy vs. Low-Level Child Issues</h2>
-        <div id="statusDistributionChart" class="chart-container"></div>
+    <div class="card large-card">
+        <h3>Hierarchy Flow (Investments → Deliverables → Epics)</h3>
+        <div id="sankeyChart" class="chart"></div>
+    </div>
+
+    <div class="card large-card">
+        <h3>Bottleneck Heatmap (Avg Days Spent)</h3>
+        <div id="heatmapChart" class="chart"></div>
+    </div>
+
+    <div class="card">
+        <h3>Data Health Score</h3>
+        <div id="gaugeChart" class="chart"></div>
+    </div>
+
+    <div class="card full-card">
+        <h3>Duration Distribution & Outliers (Boxplot)</h3>
+        <div id="boxplotChart" class="chart"></div>
     </div>
 </div>
 
 <script>
-    // 1. Average Duration Chart (Horizontal Bar)
-    var durationChart = echarts.init(document.getElementById('durationChart'));
-    durationChart.setOption({
-        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-        xAxis: { type: 'value', name: 'Days' },
-        yAxis: { type: 'category', data: ['To Do', 'In Progress', 'UAT', 'Blocked', 'Done'] },
+    // --- 1. SANKEY DIAGRAM (Hierarchy Flow) ---
+    var sankey = echarts.init(document.getElementById('sankeyChart'));
+    sankey.setOption({
+        tooltip: { trigger: 'item', triggerOn: 'mousemove' },
         series: [{
-            name: 'Avg Days',
-            type: 'bar',
-            data: [2.5, 12.4, 5.1, 3.2, 0.5],
-            itemStyle: { color: '#5470c6' }
-        }]
-    });
-
-    // 2. Hierarchy Breakdown (Pie/Donut)
-    var hierarchyChart = echarts.init(document.getElementById('hierarchyChart'));
-    hierarchyChart.setOption({
-        tooltip: { trigger: 'item' },
-        series: [{
-            name: 'Issue Count',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            avoidLabelOverlap: false,
-            itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
-            label: { show: true, position: 'outside' },
+            type: 'sankey',
+            emphasis: { focus: 'adjacency' },
             data: [
-                { value: 150, name: 'Investments' },
-                { value: 1200, name: 'Deliverables' },
-                { value: 8500, name: 'Epics' }
-            ]
+                { name: 'Investments' }, { name: 'Deliverables' }, { name: 'Epics' }, { name: 'Stories/Bugs' }
+            ],
+            links: [
+                { source: 'Investments', target: 'Deliverables', value: 150 },
+                { source: 'Deliverables', target: 'Epics', value: 1200 },
+                { source: 'Epics', target: 'Stories/Bugs', value: 8500 }
+            ],
+            lineStyle: { color: 'gradient', curveness: 0.5 }
         }]
     });
 
-    // 3. Stacked Status Distribution (Comparison)
-    var statusChart = echarts.init(document.getElementById('statusDistributionChart'));
-    statusChart.setOption({
-        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-        legend: { data: ['Done', 'In Progress', 'To Do', 'Blocked'] },
-        xAxis: { type: 'category', data: ['Investments', 'Deliverables', 'Epics', 'Low-Level Issues'] },
-        yAxis: { type: 'value' },
-        series: [
-            { name: 'Done', type: 'bar', stack: 'total', data: [80, 700, 5000, 900000] },
-            { name: 'In Progress', type: 'bar', stack: 'total', data: [40, 300, 2000, 300000] },
-            { name: 'To Do', type: 'bar', stack: 'total', data: [20, 150, 1000, 150000] },
-            { name: 'Blocked', type: 'bar', stack: 'total', data: [10, 50, 500, 50000] }
-        ]
+    // --- 2. HEATMAP (Bottlenecks) ---
+    var heatmap = echarts.init(document.getElementById('heatmapChart'));
+    heatmap.setOption({
+        tooltip: { position: 'top' },
+        xAxis: { type: 'category', data: ['Backlog', 'In Dev', 'Testing', 'UAT', 'Closed'] },
+        yAxis: { type: 'category', data: ['Investments', 'Deliverables', 'Epics'] },
+        visualMap: { min: 0, max: 30, calculable: true, orient: 'horizontal', left: 'center', bottom: '0%' },
+        series: [{
+            name: 'Days', type: 'heatmap',
+            data: [[0,0,5],[0,1,12],[0,2,8],[0,3,25],[0,4,2],[1,0,3],[1,1,18],[1,2,10],[1,3,28],[1,4,1],[2,0,2],[2,1,8],[2,2,5],[2,3,15],[2,4,1]],
+            label: { show: true }
+        }]
+    });
+
+    // --- 3. GAUGE (Data Health) ---
+    var gauge = echarts.init(document.getElementById('gaugeChart'));
+    gauge.setOption({
+        series: [{
+            type: 'gauge',
+            detail: { formatter: '{value}%', fontSize: 18 },
+            data: [{ value: 92, name: 'Reliability' }],
+            axisLine: { lineStyle: { width: 10, color: [[0.3, '#fd666d'], [0.7, '#37a2da'], [1, '#67e0e3']] }}
+        }]
+    });
+
+    // --- 4. BOXPLOT (Variability) ---
+    var boxplot = echarts.init(document.getElementById('boxplotChart'));
+    // Generate dummy data: [min, Q1, median, Q3, max]
+    var boxData = [
+        [1, 5, 8, 12, 45], // Backlog
+        [3, 10, 15, 22, 60], // Dev
+        [2, 6, 9, 13, 30], // QA
+        [5, 12, 20, 35, 120], // UAT (Notice the high outlier max)
+        [0, 1, 1, 2, 5] // Closed
+    ];
+    boxplot.setOption({
+        title: { text: 'Time Dispersion per Status', left: 'center', textStyle: { fontSize: 14 } },
+        tooltip: { trigger: 'item', axisPointer: { type: 'shadow' } },
+        xAxis: { type: 'category', data: ['Backlog', 'Dev', 'QA', 'UAT', 'Closed'], boundaryGap: true },
+        yAxis: { type: 'value', name: 'Days' },
+        series: [{
+            name: 'Duration',
+            type: 'boxplot',
+            data: boxData,
+            itemStyle: { color: '#b8c4d1', borderColor: '#0052cc' }
+        }]
     });
 
     window.onresize = function() {
-        durationChart.resize();
-        hierarchyChart.resize();
-        statusChart.resize();
+        sankey.resize(); heatmap.resize(); gauge.resize(); boxplot.resize();
     };
 </script>
 </body>
